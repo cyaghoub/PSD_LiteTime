@@ -13,26 +13,28 @@
         <p>Sunset time is: {{ sunset_time }}</p>
         <p>The candle lighting time for the upcoming Shabbat is: {{ candle_lighting_time }}</p>
         <p>Powered by <a href="https://api.sunrise-sunset.org/" target="_blank">Sunset and Sunrise API</a></p>
-        <h2>User Data:</h2>
-        <ul>
-            {% for user in users %}
-                <li>Username: {{ user.username }}, Name: {{ user.name }}, City: {{ user.city }}</li>
-            {% endfor %}
-        </ul>
         <a href="{{ url_for('logout') }}">Logout</a>
+
+
     {% else %}
-        <h1>Welcome to LiteTime</h1>
+        <h1>Sign In</h1>
+
+        {% if error_message %}
+        <p style="color: red;">{{ error_message }}</p>
+        {% endif %}
+
         <form action="/" method="post">
             <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
-            <br>
+            <input type="text" id="username" name="username" required><br>
             <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-            <br>
+            <input type="psassword" id="password" name="password" required><br>
             <button type="submit">Sign In</button>
         </form>
-        {% if error_message %}
-            <p>{{ error_message }}</p>
+
+        <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+
+        {% if success_message %}
+        <p style="color: green;">{{ success_message }}</p>
         {% endif %}
     {% endif %}
 </body>

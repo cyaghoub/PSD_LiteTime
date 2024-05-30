@@ -3,39 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sunset Time</title>
+    <title>LiteTime</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    {% if username %}
-        <h1>Welcome back, {{ username }}!</h1>
-        <p>You are currently in {{ city }}.</p>
-        <p>The upcoming Friday is: {{ friday_date }}</p>
-        <p>Sunset time is: {{ sunset_time }}</p>
-        <p>The candle lighting time for the upcoming Shabbat is: {{ candle_lighting_time }}</p>
-        <p>Powered by <a href="https://api.sunrise-sunset.org/" target="_blank">Sunset and Sunrise API</a></p>
-        <a href="{{ url_for('logout') }}">Logout</a>
+    <header>
+        <img src="{{ url_for('static', filename='LiteTime_logo_dark.png') }}" alt="LiteTime Logo" style="height: 100px;">
+    </header>
+
+    <div class="container">
+        {% if username %}
+            <h1>Welcome back, {{ username }}!</h1>
+            <p>Candle lighting times for: <strong>{{ city }}.</strong></p>
+                <p><a href="{{ url_for('change_city') }}">Change your location</a></p>
+
+            <p>Friday, {{ friday_date }}</p>
+            <p>The candle lighting time for the upcoming Shabbat is: {{ candle_lighting_time }}</p>
+            <p><em>Powered by <a href="https://api.sunrise-sunset.org/" target="_blank">Sunset and Sunrise API</a></em></p>
+            <a href="{{ url_for('logout') }}">Logout</a>
 
 
-    {% else %}
-        <h1>Sign In</h1>
+        {% else %}
+            <h1>Sign In</h1>
 
-        {% if error_message %}
-        <p style="color: red;">{{ error_message }}</p>
+            {% if error_message %}
+            <p style="color: red;">{{ error_message }}</p>
+            {% endif %}
+
+            <form action="/" method="post">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" class="input-field" required><br>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" class="input-field" required><br>
+                <button type="submit">Sign In</button>
+            </form>
+
+            <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+
+            {% if success_message %}
+            <p style="color: green;">{{ success_message }}</p>
+            {% endif %}
         {% endif %}
-
-        <form action="/" method="post">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required><br>
-            <label for="password">Password:</label>
-            <input type="psassword" id="password" name="password" required><br>
-            <button type="submit">Sign In</button>
-        </form>
-
-        <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
-
-        {% if success_message %}
-        <p style="color: green;">{{ success_message }}</p>
-        {% endif %}
-    {% endif %}
+    </div>
 </body>
 </html>

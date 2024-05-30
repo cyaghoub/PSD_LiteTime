@@ -4,26 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
 </head>
 <body>
-    <h1>Register</h1>
+    <header>
+        <img src="{{ url_for('static', filename='LiteTime_logo_dark.png') }}" alt="LiteTime Logo" style="height: 100px;">
+    </header>
+    <div class="container">
+        <h1>Register</h1>
 
-    {% if error_message %}
-    <p style="color: red;">{{ error_message }}</p>
-    {% endif %}
+        {% if error_message %}
+        <p style="color: red;">{{ error_message }}</p>
+        {% endif %}
 
-    <form action="/register" method="post">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required><br>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required><br>
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required><br>
-        <label for="city">City:</label>
-        <input type="text" id="city" name="city" required><br>
-        <button type="submit">Register</button>
-    </form>
+        <form action="/register" method="post">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" class="input-field" required><br>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" class="input-field" required><br>
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" class="input-field" required><br>
+            <label for="city">City:</label>
+            <input type="text" id="city" name="city" class="input-field" required><br>
+            <button type="submit">Register</button>
+        </form>
 
-    <p>Already have an account? <a href="{{ url_for('index') }}">Sign in here</a></p>
+        <p>Already have an account? <a href="{{ url_for('index') }}">Sign in here</a></p>
+    </div>
 </body>
 </html>

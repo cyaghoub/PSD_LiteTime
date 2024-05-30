@@ -1,10 +1,12 @@
 import sqlite3
 from flask import Flask, render_template, request, session, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import SQLAlchemyError
 import os
 import requests
 from datetime import datetime, timedelta
 from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderTimedOut
 import pytz
 from timezonefinder import TimezoneFinder
 from dateutil import parser
@@ -20,6 +22,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
+
 # Define User model
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -28,11 +31,13 @@ class User(db.Model):
     name = db.Column(db.String(120), nullable=False)
     city = db.Column(db.String(120), nullable=False)
 
+
 # Create tables if they do not exist
 with app.app_context():
     db.create_all()
 # API URL
 SUNSET_API_URL = 'https://api.sunrise-sunset.org/json'
+
 
 # Function to get upcoming Friday
 def get_upcoming_friday():
@@ -40,6 +45,7 @@ def get_upcoming_friday():
     days_til_fri = (4 - today.weekday() + 7) % 7
     upcoming_fri = today + timedelta(days=days_til_fri)
     return upcoming_fri
+
 
 # Function to get city coordinates
 def get_city_coordinates(city_name):
@@ -52,9 +58,12 @@ def get_city_coordinates(city_name):
     else:
         return None, None, None
 
+
 # Index route for login and user listing
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    error_message = None  # Initialize error message variable
+
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -68,13 +77,55 @@ def index():
             return redirect(url_for('dashboard'))
         else:
             error_message = 'Invalid username or password. Please try again.'
-            return render_template('signin.html', error_message=error_message)
 
     # Fetch all users for display
     users = User.query.all()
     print("Users in the database:", users)
 
-    return render_template('index.html', users=users)
+    return render_template('signin.html', users=users, error_message=error_message)
+
+
+@app.route('/change_city', methods=['GET', 'POST'])
+def change_city():
+    if 'username' not in session:
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        new_city = request.form.get('new_city')
+
+        # Validate the new city
+        geolocator = Nominatim(user_agent="LiteTime")
+        try:
+            location = geolocator.geocode(new_city)
+            if not location:
+                error_message = "City invalid. Please try again."
+                return render_template('change_city.html', error_message=error_message)
+        except GeocoderTimedOut:
+            error_message = "Failed to validate city due to a timeout. Please try again."
+            return render_template('change_city.html', error_message=error_message)
+        except Exception as e:
+            error_message = f"An error occurred while validating city: {str(e)}"
+            return render_template('change_city.html', error_message=error_message)
+
+        # Update the city in the database
+        username = session['username']
+        user = User.query.filter_by(username=username).first()
+        if user:
+            user.city = new_city
+            try:
+                db.session.commit()
+                return redirect(url_for('dashboard'))
+            except SQLAlchemyError as e:
+                db.session.rollback()
+                error_message = "City update failed. Please try again."
+                return render_template('change_city.html', error_message=error_message)
+        else:
+            error_message = "User not found."
+            return render_template('change_city.html', error_message=error_message)
+
+    else:
+        return render_template('change_city.html')
+
 
 # Register route
 @app.route('/register', methods=['GET', 'POST'])
@@ -102,6 +153,7 @@ def register():
             return render_template('signin.html', success_message=success_message)
 
     return render_template('register.html')
+
 
 # Dashboard route
 @app.route('/dashboard')
@@ -154,11 +206,13 @@ def dashboard():
         error_message = "City not found. Please try again."
         return render_template('index.html', error_message=error_message)
 
+
 # Logout route
 @app.route('/logout')
 def logout():
     session.pop('username', None)
     return redirect(url_for('index'))
+
 
 if __name__ == '__main__':
     with app.app_context():
